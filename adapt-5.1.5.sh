@@ -90,10 +90,6 @@ sed -i "s/#include <math.h>/\/\/SPRING#include <math.h>\n#include \"streflop_con
 sed -i "s/#include <math.h>/\/\/SPRING#include <math.h>\n#include \"streflop_cond.h\"/g" src/lapi.c
 
 # luaconf.h changes
-# LUA_NUMBER_SCAN change format
-#rpl -F "%lf" "%f" include/luaconf.h
-# OBSOLETE sed -i "s/#define LUA_NUMBER_SCAN.*/\/\/SPRING#define LUA_NUMBER_SCAN\n#define LUA_NUMBER_SCAN                \"%f\""/g include/luaconf.h
-
 sed -i "s/#define LUA_INTEGER	ptrdiff_t/\/\/SPRING we must use the same size for 64 and 32 bit. 32 bit int should be enough\n#define LUA_INTEGER	int/g" include/luaconf.h
 sed -i "s/#define LUA_IDSIZE	60/#define LUA_IDSIZE	200/g" include/luaconf.h
 
