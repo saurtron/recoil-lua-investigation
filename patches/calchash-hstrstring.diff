@@ -1,0 +1,110 @@
+diff -ru lua-5.1.5-spring/src/lua.h ../spring/rts/lib/lua/src/lua.h
+--- lua-5.1.5-spring/src/lua.h	2025-05-26 17:12:58.830658586 +0200
++++ ../spring/rts/lib/lua/src/lua.h	2025-05-24 13:18:40.608449232 +0200
+@@ -103,6 +103,10 @@
+ typedef LUA_INTEGER lua_Integer;
+ 
+ 
++/* type for string hashes */
++typedef unsigned int lua_Hash;
++
++
+ /*
+ ** SPRING additions for io access security
+ */
+@@ -258,6 +262,10 @@
+ LUA_API lua_Alloc (lua_getallocf) (lua_State *L, void **ud);
+ LUA_API void lua_setallocf (lua_State *L, lua_Alloc f, void *ud);
+ 
++//SPRING
++LUA_API lua_Hash (lua_calchash) (const char *s, size_t l);
++LUA_API void  (lua_pushhstring) (lua_State *L,
++                                 lua_Hash h, const char *s, size_t l);
+ 
+ 
+ /* 
+diff -ru lua-5.1.5-spring/src/lapi.c ../spring/rts/lib/lua/src/lapi.c
+--- lua-5.1.5-spring/src/lapi.c	2025-05-26 17:12:58.979663206 +0200
++++ ../spring/rts/lib/lua/src/lapi.c	2025-05-24 19:28:46.158544040 +0200
+@@ -452,6 +452,17 @@
+ }
+ 
+ 
++//SPRING
++LUA_API void lua_pushhstring (lua_State *L,
++                              lua_Hash h, const char *s, size_t len) {
++  lua_lock(L);
++  luaC_checkGC(L);
++  setsvalue2s(L, L->top, luaS_newhstr(L, h, s, len));
++  api_incr_top(L);
++  lua_unlock(L);
++}
++
++
+ LUA_API void lua_pushstring (lua_State *L, const char *s) {
+   if (s == NULL)
+     lua_pushnil(L);
+diff -ru lua-5.1.5-spring/src/lstring.c ../spring/rts/lib/lua/src/lstring.c
+--- lua-5.1.5-spring/src/lstring.c	2025-05-26 17:13:00.310704475 +0200
++++ ../spring/rts/lib/lua/src/lstring.c	2025-05-24 19:28:46.159544070 +0200
+@@ -72,13 +72,25 @@
+ }
+ 
+ 
+-TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+-  GCObject *o;
+-  unsigned int h = cast(unsigned int, l);  /* seed */
++//SPRING
++static inline lua_Hash calchash(const char *str, size_t l) {
++  lua_Hash h = cast(unsigned int, l);  /* seed */
+   size_t step = (l>>5)+1;  /* if string is too long, don't hash all its chars */
+   size_t l1;
+-  for (l1=l; l1>=step; l1-=step)  /* compute hash */
++  for (l1=l; l1>=step; l1-=step) {  /* compute hash */
+     h = h ^ ((h<<5)+(h>>2)+cast(unsigned char, str[l1-1]));
++  }
++  return h;
++}
++
++
++//SPRING
++LUA_API lua_Hash lua_calchash(const char *str, size_t l) {
++  return calchash(str, l);
++}
++
++TString *luaS_newhstr (lua_State *L, lua_Hash h, const char *str, size_t l) {
++  GCObject *o;
+   for (o = G(L)->strt.hash[lmod(h, G(L)->strt.size)];
+        o != NULL;
+        o = o->gch.next) {
+@@ -92,7 +104,8 @@
+   return newlstr(L, str, l, h);  /* not found */
+ }
+ 
+-/*
++
++//SPRING
+ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+   GCObject *o;
+   const lua_Hash h = calchash(str, l);
+@@ -108,7 +121,6 @@
+   }
+   return newlstr(L, str, l, h);  /* not found */
+ }
+-*/
+ 
+ 
+ Udata *luaS_newudata (lua_State *L, size_t s, Table *e) {
+diff -ru lua-5.1.5-spring/src/lstring.h ../spring/rts/lib/lua/src/lstring.h
+--- lua-5.1.5-spring/src/lstring.h	2025-05-26 17:12:58.476647610 +0200
++++ ../spring/rts/lib/lua/src/lstring.h	2025-05-24 19:28:46.159544070 +0200
+@@ -26,6 +26,9 @@
+ LUAI_FUNC void luaS_resize (lua_State *L, int newsize);
+ LUAI_FUNC Udata *luaS_newudata (lua_State *L, size_t s, Table *e);
+ LUAI_FUNC TString *luaS_newlstr (lua_State *L, const char *str, size_t l);
++//SPRING
++LUAI_FUNC TString *luaS_newhstr (lua_State *L,
++                                 lua_Hash h, const char *str, size_t l);
+ 
+ 
+ #endif

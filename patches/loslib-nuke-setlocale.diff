@@ -1,0 +1,21 @@
+diff -ru lua-5.1.5/src/loslib.c lua-5.1.5-changes/src/loslib.c
+--- lua-5.1.5/src/loslib.c	2008-01-18 17:38:18.000000000 +0100
++++ lua-5.1.5-changes/src/loslib.c	2025-05-26 15:37:40.197222598 +0200
+@@ -202,14 +202,9 @@
+ 
+ 
+ static int os_setlocale (lua_State *L) {
+-  static const int cat[] = {LC_ALL, LC_COLLATE, LC_CTYPE, LC_MONETARY,
+-                      LC_NUMERIC, LC_TIME};
+-  static const char *const catnames[] = {"all", "collate", "ctype", "monetary",
+-     "numeric", "time", NULL};
+-  const char *l = luaL_optstring(L, 1, NULL);
+-  int op = luaL_checkoption(L, 2, "all", catnames);
+-  lua_pushstring(L, setlocale(cat[op], l));
+-  return 1;
++  /* Locale can affect sync. For example, strings can be sorted differently.
++   * In some locales, the upper/lower case order is ABab and in others AaBb. */
++  return 0;
+ }
+ 
+ 

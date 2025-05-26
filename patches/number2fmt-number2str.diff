@@ -1,0 +1,31 @@
+diff -ru lua-5.1.5/src/lstrlib.c lua-5.1.5-changes/src/lstrlib.c
+--- lua-5.1.5/src/lstrlib.c	2010-05-14 17:34:19.000000000 +0200
++++ lua-5.1.5-changes/src/lstrlib.c	2025-05-26 15:59:55.736192987 +0200
+@@ -789,7 +789,9 @@
+         }
+         case 'e':  case 'E': case 'f':
+         case 'g': case 'G': {
+-          sprintf(buff, form, (double)luaL_checknumber(L, arg));
++	  // SPRING sprintf(buff, form, (double)luaL_checknumber(L, arg));
++	  // float2str in printf is desyncing (between windows & linux) we need to use our own syncing one
++	  lua_number2fmt(buff, form, luaL_checknumber(L, arg));
+           break;
+         }
+         case 'q': {
+diff -ru lua-5.1.5/src/luaconf.h lua-5.1.5-changes/src/luaconf.h
+--- lua-5.1.5/src/luaconf.h	2008-02-11 17:25:08.000000000 +0100
++++ lua-5.1.5-changes/src/luaconf.h	2025-05-26 16:01:46.851866316 +0200
+@@ -520,7 +520,13 @@
+ */
+ #define LUA_NUMBER_SCAN		"%lf"
+ #define LUA_NUMBER_FMT		"%.14g"
++#ifndef BUILDING_AI
++#define lua_number2str(s,n)	spring_lua_ftoa((n),(s))
++#define lua_number2fmt(s,fmt,n)	spring_lua_format((n), (fmt), (s))
++#else
+ #define lua_number2str(s,n)	sprintf((s), LUA_NUMBER_FMT, (n))
++#define lua_number2fmt(s,fmt,n)	sprintf((s), fmt, (n))
++#endif
+ #define LUAI_MAXNUMBER2STR	32 /* 16 digits, sign, point, and \0 */
+ #define lua_str2number(s,p)	strtod((s), (p))
+ 

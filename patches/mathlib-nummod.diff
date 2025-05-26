@@ -1,0 +1,12 @@
+diff -ru lua-5.1.5/src/luaconf.h lua-5.1.5-changes/src/luaconf.h
+--- lua-5.1.5/src/luaconf.h	2008-02-11 17:25:08.000000000 +0100
++++ lua-5.1.5-changes/src/luaconf.h	2025-05-26 16:31:13.110767293 +0200
+@@ -534,7 +534,7 @@
+ #define luai_numsub(a,b)	((a)-(b))
+ #define luai_nummul(a,b)	((a)*(b))
+ #define luai_numdiv(a,b)	((a)/(b))
+-#define luai_nummod(a,b)	((a) - floor((a)/(b))*(b))
++#define luai_nummod(a,b)	((a) - floor(luai_numdiv((a), (b))) * (b))
+ #define luai_numpow(a,b)	(pow(a,b))
+ #define luai_numunm(a)		(-(a))
+ #define luai_numeq(a,b)		((a)==(b))

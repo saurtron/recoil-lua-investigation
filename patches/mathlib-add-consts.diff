@@ -1,0 +1,17 @@
+diff -ru lua-5.1.5/src/lmathlib.c lua-5.1.5-changes/src/lmathlib.c
+--- lua-5.1.5/src/lmathlib.c	2007-12-27 14:02:25.000000000 +0100
++++ lua-5.1.5-changes/src/lmathlib.c	2025-05-26 16:13:26.233623799 +0200
+@@ -252,7 +252,13 @@
+   luaL_register(L, LUA_MATHLIBNAME, mathlib);
+   lua_pushnumber(L, PI);
+   lua_setfield(L, -2, "pi");
++  lua_pushnumber(L, math::TWOPI);
++  lua_setfield(L, -2, "tau");
++#if STREFLOP_ENABLED
++  lua_pushnumber(L, math::SimplePositiveInfinity); // streflop
++#else
+   lua_pushnumber(L, HUGE_VAL);
++#endif
+   lua_setfield(L, -2, "huge");
+ #if defined(LUA_COMPAT_MOD)
+   lua_getfield(L, -1, "fmod");

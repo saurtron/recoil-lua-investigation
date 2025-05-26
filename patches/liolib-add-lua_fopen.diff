@@ -1,0 +1,21 @@
+diff -ru lua-5.1.5/src/liolib.c lua-5.1.5-changes/src/liolib.c
+--- lua-5.1.5/src/liolib.c	2010-05-14 17:33:51.000000000 +0200
++++ lua-5.1.5-changes/src/liolib.c	2025-05-26 16:03:45.819774963 +0200
+@@ -27,6 +27,17 @@
+ static const char *const fnames[] = {"input", "output"};
+ 
+ 
++/* SPRING */
++static FILE* lua_fopen(lua_State* L, const char* filename, const char* mode)
++{
++  if (G(L)->fopen_func) {
++    return G(L)->fopen_func(L, filename, mode);
++  }
++  errno = EIO; /* why not? */
++  return NULL;
++}
++
++
+ static int pushresult (lua_State *L, int i, const char *filename) {
+   int en = errno;  /* calls to Lua API may change this value */
+   if (i) {

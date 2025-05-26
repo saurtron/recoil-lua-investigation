@@ -1,0 +1,29 @@
+diff -ru lua-5.1.5-spring/src/lauxlib.h ../spring/rts/lib/lua/src/lauxlib.h
+--- lua-5.1.5-spring/src/lauxlib.h	2025-05-26 15:13:47.195197988 +0200
++++ ../spring/rts/lib/lua/src/lauxlib.h	2025-05-24 13:18:40.608449232 +0200
+@@ -52,6 +52,7 @@
+ LUALIB_API const char *(luaL_optlstring) (lua_State *L, int numArg,
+                                           const char *def, size_t *l);
+ LUALIB_API lua_Number (luaL_checknumber) (lua_State *L, int numArg);
++LUALIB_API lua_Number (luaL_checknumber_noassert) (lua_State *L, int numArg);
+ LUALIB_API lua_Number (luaL_optnumber) (lua_State *L, int nArg, lua_Number def);
+ 
+ LUALIB_API lua_Integer (luaL_checkinteger) (lua_State *L, int numArg);
+diff -ru lua-5.1.5-spring/src/lauxlib.c ../spring/rts/lib/lua/src/lauxlib.c
+--- lua-5.1.5-spring/src/lauxlib.c	2025-05-26 15:13:48.701243908 +0200
++++ ../spring/rts/lib/lua/src/lauxlib.c	2025-05-24 19:28:46.159544070 +0200
+@@ -193,6 +193,14 @@
+   return d;
+ }
+ 
++LUALIB_API lua_Number luaL_checknumber_noassert (lua_State *L, int narg) {
++  lua_Number d = lua_tonumber(L, narg);
++  if (d == 0 && !lua_isnumber(L, narg))  /* avoid extra test when d is not 0 */
++    tag_error(L, narg, LUA_TNUMBER);
++
++  return d;
++}
++
+ 
+ LUALIB_API lua_Number luaL_optnumber (lua_State *L, int narg, lua_Number def) {
+   return luaL_opt(L, luaL_checknumber, narg, def);

@@ -1,0 +1,67 @@
+diff -ru lua-5.1.5/src/lapi.c lua-5.1.5-changes/src/lapi.c
+--- lua-5.1.5/src/lapi.c	2008-07-04 20:41:18.000000000 +0200
++++ lua-5.1.5-changes/src/lapi.c	2025-05-26 15:22:01.831341279 +0200
+@@ -1085,3 +1085,38 @@
+   return name;
+ }
+ 
++
++/* SPRING syscall additions */
++LUA_API void lua_set_fopen(lua_State* L, lua_Func_fopen func) {
++  G(L)->fopen_func = func;
++}
++
++
++LUA_API void lua_set_popen(lua_State* L, lua_Func_popen popen_func,
++                                         lua_Func_pclose pclose_func) {
++  if (popen_func && pclose_func) {
++    G(L)->popen_func  = popen_func;
++    G(L)->pclose_func = pclose_func;
++  } else {
++    G(L)->popen_func  = NULL;
++    G(L)->pclose_func = NULL;
++  }
++}
++
++
++LUA_API void lua_set_system(lua_State* L, lua_Func_system func) {
++  G(L)->system_func = func;
++}
++
++
++LUA_API void lua_set_remove(lua_State* L, lua_Func_remove func) {
++  G(L)->remove_func = func;
++}
++
++
++LUA_API void lua_set_rename(lua_State* L, lua_Func_rename func) {
++  G(L)->rename_func = func;
++}
++/* END SPRING syscall additions */
++
++
+diff -ru lua-5.1.5/src/lua.h lua-5.1.5-changes/src/lua.h
+--- lua-5.1.5/src/lua.h	2012-01-13 21:36:20.000000000 +0100
++++ lua-5.1.5-changes/src/lua.h	2025-05-26 15:20:20.285224616 +0200
+@@ -103,6 +103,21 @@
+ typedef LUA_INTEGER lua_Integer;
+ 
+ 
++/*
++** SPRING additions for io access security
++*/
++#include <stdio.h>
++typedef FILE* (*lua_Func_fopen)(lua_State* L, const char* path, const char* mode);
++typedef FILE* (*lua_Func_popen)(lua_State* L, const char* command, const char* type);
++typedef int   (*lua_Func_pclose)(lua_State* L, FILE* stream);
++typedef int   (*lua_Func_system)(lua_State* L, const char* command);
++typedef int   (*lua_Func_remove)(lua_State* L, const char* pathname);
++typedef int   (*lua_Func_rename)(lua_State* L, const char* oldpath, const char* newpath);
++LUA_API void lua_set_fopen(lua_State* L, lua_Func_fopen);
++LUA_API void lua_set_popen(lua_State* L, lua_Func_popen, lua_Func_pclose);
++LUA_API void lua_set_system(lua_State* L, lua_Func_system);
++LUA_API void lua_set_remove(lua_State* L, lua_Func_remove);
++LUA_API void lua_set_rename(lua_State* L, lua_Func_rename);
+ 
+ /*
+ ** state manipulation

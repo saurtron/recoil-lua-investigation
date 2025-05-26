@@ -1,0 +1,21 @@
+diff -ru lua-5.1.5/src/lauxlib.c lua-5.1.5-changes/src/lauxlib.c
+--- lua-5.1.5/src/lauxlib.c	2008-01-21 14:20:51.000000000 +0100
++++ lua-5.1.5-changes/src/lauxlib.c	2025-05-26 15:10:56.747012266 +0200
+@@ -177,6 +177,17 @@
+   lua_Number d = lua_tonumber(L, narg);
+   if (d == 0 && !lua_isnumber(L, narg))  /* avoid extra test when d is not 0 */
+     tag_error(L, narg, LUA_TNUMBER);
++
++#if defined(REPORT_LUANAN)
++  // SPRING
++  //   this is used by luaL_optnumber, luaL_optfloat (via luaL_optnumber),
++  //   and luaL_checkfloat, so the asserts should cover 90% of all cases
++  //   in which non-numbers can infect the engine -- lua_tofloat asserts
++  //   take care of the rest
++  if unlikely(math::isinf(d)) luaL_argerror(L, narg, "number expected, got +-Inf (check your code for div0)");
++  if unlikely(math::isnan(d)) luaL_argerror(L, narg, "number expected, got +-NaN (check your code for div0)");
++#endif
++
+   return d;
+ }
+ 

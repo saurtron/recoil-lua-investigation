@@ -1,0 +1,25 @@
+diff -ru lua-5.1.5/src/lbaselib.c lua-5.1.5-changes/src/lbaselib.c
+--- lua-5.1.5/src/lbaselib.c	2008-02-14 17:46:22.000000000 +0100
++++ lua-5.1.5-changes/src/lbaselib.c	2025-05-26 16:23:54.397172401 +0200
+@@ -410,9 +410,21 @@
+     case LUA_TNIL:
+       lua_pushliteral(L, "nil");
+       break;
++    /*
++     * SPRING - synced safety change
++     */
++    case LUA_TNONE:          { lua_pushliteral(L, "<none>");          break; }
++    case LUA_TTABLE:         { lua_pushliteral(L, "<table>");         break; }
++    case LUA_TUSERDATA:      { lua_pushliteral(L, "<userdata>");      break; }
++    case LUA_TLIGHTUSERDATA: { lua_pushliteral(L, "<lightuserdata>"); break; }
++    case LUA_TFUNCTION:      { lua_pushliteral(L, "<function>");      break; }
++    case LUA_TTHREAD:        { lua_pushliteral(L, "<thread>");        break; }
++    default:                 { lua_pushliteral(L, "<unknown_type>");  break; }
++/*
+     default:
+       lua_pushfstring(L, "%s: %p", luaL_typename(L, 1), lua_topointer(L, 1));
+       break;
++*/
+   }
+   return 1;
+ }

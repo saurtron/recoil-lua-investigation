@@ -1,0 +1,30 @@
+diff -ru lua-5.1.5/src/liolib.c lua-5.1.5-changes/src/liolib.c
+--- lua-5.1.5/src/liolib.c	2010-05-14 17:33:51.000000000 +0200
++++ lua-5.1.5-changes/src/liolib.c	2025-05-26 17:10:34.222177260 +0200
+@@ -162,7 +162,7 @@
+   const char *filename = luaL_checkstring(L, 1);
+   const char *mode = luaL_optstring(L, 2, "r");
+   FILE **pf = newfile(L);
+-  *pf = fopen(filename, mode);
++  *pf = lua_fopen(L, filename, mode); //SPRING
+   return (*pf == NULL) ? pushresult(L, 0, filename) : 1;
+ }
+ 
+@@ -202,7 +202,7 @@
+     const char *filename = lua_tostring(L, 1);
+     if (filename) {
+       FILE **pf = newfile(L);
+-      *pf = fopen(filename, mode);
++      *pf = lua_fopen(L, filename, mode); //SPRING
+       if (*pf == NULL)
+         fileerror(L, 1, filename);
+     }
+@@ -254,7 +254,7 @@
+   else {
+     const char *filename = luaL_checkstring(L, 1);
+     FILE **pf = newfile(L);
+-    *pf = fopen(filename, "r");
++    *pf = lua_fopen(L,filename, "r"); //SPRING
+     if (*pf == NULL)
+       fileerror(L, 1, filename);
+     aux_lines(L, lua_gettop(L), 1);

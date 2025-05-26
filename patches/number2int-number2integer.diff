@@ -1,0 +1,43 @@
+diff -ru lua-5.1.5/src/luaconf.h lua-5.1.5-changes/src/luaconf.h
+--- lua-5.1.5/src/luaconf.h	2008-02-11 17:25:08.000000000 +0100
++++ lua-5.1.5-changes/src/luaconf.h	2025-05-26 16:21:04.000610447 +0200
+@@ -557,23 +557,24 @@
+ #if defined(LUA_NUMBER_DOUBLE) && !defined(LUA_ANSI) && !defined(__SSE2__) && \
+     (defined(__i386) || defined (_M_IX86) || defined(__i386__))
+ 
+-/* On a Microsoft compiler, use assembler */
+-#if defined(_MSC_VER)
++	/* On a Microsoft compiler, use assembler */
++	#if defined(_MSC_VER)
+ 
+-#define lua_number2int(i,d)   __asm fld d   __asm fistp i
+-#define lua_number2integer(i,n)		lua_number2int(i, n)
+-
+-/* the next trick should work on any Pentium, but sometimes clashes
+-   with a DirectX idiosyncrasy */
+-#else
+-
+-union luai_Cast { double l_d; long l_l; };
+-#define lua_number2int(i,d) \
+-  { volatile union luai_Cast u; u.l_d = (d) + 6755399441055744.0; (i) = u.l_l; }
+-#define lua_number2integer(i,n)		lua_number2int(i, n)
+-
+-#endif
++		#warning Using ASM for lua_number2int  (SPRING)
++		#define lua_number2int(i,d)   __asm fld d   __asm fistp i
++		#define lua_number2integer(i,n)		lua_number2int(i, n)
++
++		/* the next trick should work on any Pentium, but sometimes clashes
++		with a DirectX idiosyncrasy */
++	#else
++
++		#warning Using casting for lua_number2int  (SPRING)
++		union luai_Cast { double l_d; long l_l; };
++		#define lua_number2int(i,d) \
++		{ volatile union luai_Cast u; u.l_d = (d) + 6755399441055744.0; (i) = u.l_l; }
++		#define lua_number2integer(i,n)		lua_number2int(i, n)
+ 
++	#endif
+ 
+ /* this option always works, but may be slow */
+ #else

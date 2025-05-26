@@ -1,0 +1,38 @@
+diff -ru lua-5.1.5/src/lzio.c lua-5.1.5-changes/src/lzio.c
+--- lua-5.1.5/src/lzio.c	2007-12-27 14:02:25.000000000 +0100
++++ lua-5.1.5-changes/src/lzio.c	2025-05-26 15:39:55.361388435 +0200
+@@ -22,10 +22,14 @@
+   size_t size;
+   lua_State *L = z->L;
+   const char *buff;
++  if (z->eoz) return EOZ;
+   lua_unlock(L);
+   buff = z->reader(L, z->data, &size);
+   lua_lock(L);
+-  if (buff == NULL || size == 0) return EOZ;
++  if (buff == NULL || size == 0) {
++    z->eoz = 1;  /* avoid calling reader function next time */
++    return EOZ;
++  }
+   z->n = size - 1;
+   z->p = buff;
+   return char2int(*(z->p++));
+@@ -51,6 +55,7 @@
+   z->data = data;
+   z->n = 0;
+   z->p = NULL;
++  z->eoz = 0;
+ }
+ 
+ 
+diff -ru lua-5.1.5/src/lzio.h lua-5.1.5-changes/src/lzio.h
+--- lua-5.1.5/src/lzio.h	2007-12-27 14:02:25.000000000 +0100
++++ lua-5.1.5-changes/src/lzio.h	2025-05-26 15:42:37.526387213 +0200
+@@ -59,6 +59,7 @@
+   lua_Reader reader;
+   void* data;			/* additional data */
+   lua_State *L;			/* Lua state (for reader) */
++  int eoz;			/* true if reader has no more data */
+ };
+ 
+ 

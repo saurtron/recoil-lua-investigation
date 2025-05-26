@@ -1,0 +1,32 @@
+diff -ru lua-5.1.5/src/lmathlib.c lua-5.1.5-changes/src/lmathlib.c
+--- lua-5.1.5/src/lmathlib.c	2007-12-27 14:02:25.000000000 +0100
++++ lua-5.1.5-changes/src/lmathlib.c	2025-05-26 15:35:16.304788594 +0200
+@@ -94,10 +94,24 @@
+ }
+ 
+ static int math_modf (lua_State *L) {
+-  double ip;
+-  double fp = modf(luaL_checknumber_noassert(L, 1), &ip);
+-  lua_pushnumber(L, ip);
+-  lua_pushnumber(L, fp);
++  // FIXME -- streflop does not have modf()
++  // double fp = math::modf(luaL_checknumber_noassert(L, 1), &ip);
++  const float in = (float)luaL_checknumber_noassert(L, 1);
++
++  if (math::isnan(in)) {
++    lua_pushnumber(L, in);
++    lua_pushnumber(L, in);
++  }
++  else if (math::isinf(in)) {
++    lua_pushnumber(L, in);
++    lua_pushnumber(L, 0.0f);
++  }
++  else {
++    const float fp = math::fmod(in, 1.0f);
++    const float ip = (in - fp);
++    lua_pushnumber(L, ip);
++    lua_pushnumber(L, fp);
++  }
+   return 2;
+ }
+ 

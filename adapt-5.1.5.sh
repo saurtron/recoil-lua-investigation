@@ -8,6 +8,52 @@ cp -r $LORIG $LDEST
 
 cd $LDEST
 
+# report luaNaN
+patch -p1 < ../patches/report_luanan.diff
+# add checknumber_noassert to mathlib
+patch -p1 < ../patches/add-checknumber-noassert.diff
+patch -p1 < ../patches/add-checknumber-noassert-2.diff
+# set global *_func for system calls
+patch -p1 < ../patches/io-security.diff
+# hooks locking
+patch -p1 < ../patches/userstate-locks.diff
+# fixes modf for sync
+patch -p1 < ../patches/mathlib-fix-modf.diff
+# remove setlocale code for sync
+patch -p1 < ../patches/loslib-nuke-setlocale.diff
+# optimization from newer lua version?
+patch -p1 < ../patches/lzio-eoz-optimization.diff
+# add g->*_func variables, and make system calls work only if they're defined
+patch -p1 < ../patches/def-disable-system-functions.diff
+patch -p1 < ../patches/def-disable-system-functions-2.diff
+# luaV_tostring sync safety
+patch -p1 < ../patches/luaV_tostring-safety.diff
+# l_strcmp sync safety
+patch -p1 < ../patches/l_strcmp-safety.diff
+# custom number2fmt and number2str methods for sync safety
+patch -p1 < ../patches/number2fmt-number2str.diff
+# lua_fopen
+patch -p1 < ../patches/liolib-add-lua_fopen.diff
+patch -p1 < ../patches/liolib-add-lua_fopen-2.diff
+# random changed for sync safety
+patch -p1 < ../patches/mathlib-synced-random.diff
+# add some consts to math module
+patch -p1 < ../patches/mathlib-add-consts.diff
+# backport luaB-pairs from newer lua
+patch -p1 < ../patches/luaB-pairs-backport.diff
+# custom os_clock using spring libraries
+patch -p1 < ../patches/loslib-custom-os_clock.diff
+# custom number2int and number2integer (for sync safety?)
+patch -p1 < ../patches/number2int-number2integer.diff
+# luaB_tostring sync safety
+patch -p1 < ../patches/luaB_tostring-sync-safety.diff
+# make float numbers 32 bit
+patch -p1 < ../patches/luaconf-spring-double.diff
+# nummod changes (for sync safety?)
+patch -p1 < ../patches/mathlib-nummod.diff
+# hash variants of string
+patch -p1 < ../patches/calchash-hstrstring.diff
+
 mkdir include
 mv src/lauxlib.h include/lauxlib.h
 mv src/luaconf.h include/luaconf.h
@@ -23,9 +69,6 @@ rm -rf test doc etc
 rpl "cast\(" "lua_cast(" src/*
 rpl "ifndef cast" "ifndef lua_cast" src/llimits.h
 
-# luaL_checknumber -> luaL_checknumber_noassert inside lmathlib.c
-rpl "luaL_checknumber" "luaL_checknumber_noassert" src/lmathlib.c
-
 # redefine PI and RADIANS_PER_DEGREE
 rpl -F "#define PI (3.14159265358979323846)" "//SPRING #define PI 3.14159265358979323846" src/lmathlib.c
 rpl -F "#define RADIANS_PER_DEGREE (PI/180.0)" "#define RADIANS_PER_DEGREE math::DEG_TO_RAD //SPRING(PI/180.0)" src/lmathlib.c
@@ -40,10 +83,6 @@ rpl -F "LUA_API int lua_toboolean" "LUA_API bool lua_toboolean" src/lapi.c
 # registry -> lua_registry
 rpl -w -F "registry" "lua_registry" src/* include/*
 
-# fopen -> lua_fopen inside liolib.c
-rpl -F "pf = fopen(filename, mode);" "pf = lua_fopen(L, filename, mode); //SPRING" src/liolib.c
-rpl -F "pf = fopen(filename, \"r\");" "pf = lua_fopen(L,filename, \"r\"); //SPRING" src/liolib.c
-
 # math.h -> streflop_cond.h
 sed -i "s/#include <math.h>/\/\/SPRING#include <math.h>\n#include \"streflop_cond.h\"/g" include/luaconf.h
 sed -i "s/#include <math.h>/\/\/SPRING#include <math.h>\n#include \"streflop_cond.h\"/g" src/ltable.c
@@ -53,7 +92,7 @@ sed -i "s/#include <math.h>/\/\/SPRING#include <math.h>\n#include \"streflop_con
 # luaconf.h changes
 # LUA_NUMBER_SCAN change format
 #rpl -F "%lf" "%f" include/luaconf.h
-sed -i "s/#define LUA_NUMBER_SCAN.*/\/\/SPRING#define LUA_NUMBER_SCAN\n#define LUA_NUMBER_SCAN                \"%f\""/g include/luaconf.h
+# OBSOLETE sed -i "s/#define LUA_NUMBER_SCAN.*/\/\/SPRING#define LUA_NUMBER_SCAN\n#define LUA_NUMBER_SCAN                \"%f\""/g include/luaconf.h
 
 sed -i "s/#define LUA_INTEGER	ptrdiff_t/\/\/SPRING we must use the same size for 64 and 32 bit. 32 bit int should be enough\n#define LUA_INTEGER	int/g" include/luaconf.h
 sed -i "s/#define LUA_IDSIZE	60/#define LUA_IDSIZE	200/g" include/luaconf.h
@@ -110,7 +149,6 @@ rpl -F "Copyright (C) 1994-2012 Lua.org, PUC-Rio." "Copyright (C) 1994-2008 Lua.
 
 # move .c files to .cpp
 for A in `ls src/*.c`; do mv $A ${A}pp; done
-
 
 cd ..
 diff -ru $LDEST $LSPRING
