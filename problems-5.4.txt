@@ -1,0 +1,19 @@
+
+No setfenv:
+ - http://lua-users.org/lists/lua-l/2010-06/msg00314.html
+ - https://stackoverflow.com/questions/14290527/recreating-setfenv-in-lua-5-2
+ - https://github.com/davidm/lua-compat-env
+ - https://github.com/lqt5/lqt/issues/18
+ - https://github.com/lqt5/lqt/compare/qt5...udbg:lqt:udbg 
+   - #define luaL_register(L,n,l) luaL_setfuncs(L, l, 0)
+   - #define luaL_typerror luaL_argerror
+   - #define lua_getfenv(L, i) lua_getuservalue(L, i)
+   - #define lua_setfenv(L, i) lua_setuservalue(L, i)
+
+No LUA_GLOBALSINDEX:
+ - https://stackoverflow.com/questions/9057943/porting-to-lua-5-2-lua-globalsindex-trouble
+ - https://stackoverflow.com/questions/10087226/lua-5-2-lua-globalsindex-alternative
+ - https://gamedev.net/forums/topic/619390-trying-to-move-to-52-replacement-for-lua_globalsindex/
+
+Reviews of new lua versions:
+ - https://www.corsix.org/content/look-lua-52-work3
